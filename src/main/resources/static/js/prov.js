@@ -37,24 +37,21 @@ $(document).ready(function () {
 					// 选中行的数据, 处理成功后, 修改状态
 					var row = table.row("#" + rowData[currentRow]);
 					var data = row.data();
-					data.sts = "已处理";
+					data.sts = "処理済";
 					data.mstcountrycd = dataFormJson.mstcountrycd;
 					data.provcode = dataFormJson.provcode;
 					data.provname = dataFormJson.provname;
 					row.data(data).draw();
-					// 设置该行不可选
-					row.nodes().to$().addClass("disabled");
 
+					row.nodes().to$().addClass("disabled");
 					currentRow++;
+					
 					if (currentRow == selectedRow) {
-						// close modal
 						$("#closeModalBtn").click();
 					} else {
 						$("#currSpan").text(currentRow + 1);
 					    getRecord();
 					}
-				} else {
-					// close modal
 				}
 			},
 			error: function(e) {
