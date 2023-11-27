@@ -12,11 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.servingwebcontent.entity.ProvinceEntity;
 import com.example.servingwebcontent.form.CountrySearchForm;
+import com.example.servingwebcontent.form.ProvForm;
 import com.example.servingwebcontent.repository.ProvinceEntityDynamicSqlSupport;
 import com.example.servingwebcontent.repository.ProvinceEntityMapper;
 import com.google.gson.Gson;
@@ -28,7 +30,7 @@ public class ProvController {
 	private ProvinceEntityMapper mapper;
 
 	@GetMapping("/prov")
-	public String init(CountrySearchForm countrySearchForm) {
+	public String init(CountrySearchForm countrySearchForm, ProvForm provForm) {
 
 		return "province/prov";
 	}
@@ -44,9 +46,8 @@ public class ProvController {
 				.render(RenderingStrategies.MYBATIS3);
 
 		List<ProvinceEntity> list = mapper.selectMany(selectStatement);
-		String json = new Gson().toJson(list, List.class);
 		
-		return json;
+		return new Gson().toJson(list, List.class);
 	}
 
 	@GetMapping("/prov/getRecord/{countryId}/{provinceId}")
@@ -60,8 +61,30 @@ public class ProvController {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
 
-		String json = new Gson().toJson(entity.get());
+		return new Gson().toJson(entity.get());
+	}
+	
+	@PostMapping("/prov/updateRecord")
+	@ResponseBody
+	public String updateRecord(ProvForm provForm) {
 
-		return json;
+		ProvinceEntity provinceEntity = new ProvinceEntity();
+		provinceEntity.setMstcountrycd(provForm.getMstcountrycd());
+		provinceEntity.setProvcode(provForm.getProvcode());
+		provinceEntity.setProvname(provForm.getProvname());
+		
+		int updateCount = mapper.updateByPrimaryKey(provinceEntity);
+
+		if(updateCount == 0) {
+			// return bad request
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<ProvinceEntity> entity = mapper.selectByPrimaryKey(provForm.getProvcode(), provForm.getMstcountrycd());
+
+		provForm.setMstcountrycd(entity.get().getMstcountrycd());
+		provForm.setProvcode(entity.get().getProvcode());
+		provForm.setProvname(entity.get().getProvname());
+		return new Gson().toJson(provForm);
 	}
 }

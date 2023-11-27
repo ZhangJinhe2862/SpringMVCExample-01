@@ -22,30 +22,47 @@ $(document).ready(function () {
     getRecord();
   });
 
-  // event handler for previous button
-  $("#oprateBtn").on("click", function () {
-    // show next selected row
-    if (currentRow < selectedRow) {
-      var rowData = table.rows({ selected: true }).ids();
-      // 选中行的数据, 处理成功后, 修改状态
-      var row = table.row("#" + rowData[currentRow]);
-      var data = row.data();
-      data.sts = "已处理";
-      row.data(data).draw();
-      // 设置该行不可选
-      row.nodes().to$().addClass("disabled");
+	// event handler for previous button
+	$("#oprateBtn").on("click", function() {
+		// show next selected row
+		$.ajax({
+			type: "POST",
+			url: "/prov/updateRecord",
+			data: $("#detailForm").serialize(),
+			datatype: "json",
+			success: function(dataForm) {
+				var dataFormJson = JSON.parse(dataForm);
+				if (currentRow+1 <= selectedRow) {
+					var rowData = table.rows({ selected: true }).ids();
+					// 选中行的数据, 处理成功后, 修改状态
+					var row = table.row("#" + rowData[currentRow]);
+					var data = row.data();
+					data.sts = "已处理";
+					data.mstcountrycd = dataFormJson.mstcountrycd;
+					data.provcode = dataFormJson.provcode;
+					data.provname = dataFormJson.provname;
+					row.data(data).draw();
+					// 设置该行不可选
+					row.nodes().to$().addClass("disabled");
 
-      currentRow++;
-      if (currentRow == selectedRow) {
-        // close modal
-        $("#closeModalBtn").click();
-      }
-      $("#currSpan").text(currentRow + 1);
-      getRecord();
-    } else {
-      // close modal
-    }
-  });
+					currentRow++;
+					if (currentRow == selectedRow) {
+						// close modal
+						$("#closeModalBtn").click();
+					} else {
+						$("#currSpan").text(currentRow + 1);
+					    getRecord();
+					}
+				} else {
+					// close modal
+				}
+			},
+			error: function(e) {
+				data.sts = "エラー";
+				alert("Error: " + e);
+			},
+		});
+	});
 });
 
 // get record
