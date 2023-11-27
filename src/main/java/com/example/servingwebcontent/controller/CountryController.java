@@ -1,5 +1,6 @@
 package com.example.servingwebcontent.controller;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,13 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.example.servingwebcontent.entity.CountryEntity;
 import com.example.servingwebcontent.entity.Customer;
 import com.example.servingwebcontent.form.CountryForm;
 import com.example.servingwebcontent.form.CountrySearchForm;
-import com.example.servingwebcontent.form.TestForm;
 import com.example.servingwebcontent.repository.CountryEntityMapper;
 import com.google.gson.Gson;
 
@@ -31,41 +30,8 @@ public class CountryController {
 	@Autowired
 	private CountryEntityMapper mapper;
 
-	/**
-	 * The String class represents character strings.
-	 */
-	@GetMapping("/list")
-	public String list(TestForm testForm) {
-		// String names = "countrys";
-		// List<CountryEntity> list = mapper.select(SelectDSLCompleter.allRows());
-		// model.addAttribute(names, list);
-		// model.addAttribute("testForm", new TestForm());
-		return "list";
-	}
-
-	@PostMapping("/create")
-	@ResponseBody
-	public String createTestCountry(TestForm testForm){
-
-		// create new entity
-		CountryEntity entity = new CountryEntity();
-		// set country cd
-		entity.setMstcountrycd(testForm.getCd());
-		// set country name
-		entity.setMstcountrynanme(testForm.getName());
-		// insert record
-		mapper.insert(entity);
-
-		// clear form attrib
-		testForm.setCd("");
-		testForm.setName("");
-
-		return "这是自己写的回给前端的信息";
-	}
-
-
 	@GetMapping("/country")
-	public String init(CountrySearchForm countrySearchForm) {
+	public String init(CountrySearchForm countrySearchForm, CountryForm countryForm) {
 
 		return "country/country";
 	}
@@ -76,7 +42,7 @@ public class CountryController {
 	 */
 	@PostMapping("/country/getCountry")
 	@ResponseBody
-	public String getCountry(@Validated CountrySearchForm countrySearchForm, BindingResult bindingResult) {
+	public String getCountry(@Validated CountrySearchForm countrySearchForm, CountryForm countryForm, BindingResult bindingResult) {
 		if (bindingResult.hasErrors()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
 		}
@@ -85,50 +51,78 @@ public class CountryController {
 		 * Optional object containing the result of the database query for the country
 		 * with the specified country code.
 		 */
-		Optional<CountryEntity> countryEntity = mapper.selectByPrimaryKey(countrySearchForm.getMstCountryCD());
+		Optional<CountryEntity> countryEntity = mapper.selectByPrimaryKey(countrySearchForm.getMstCountryCd());
 		if (countryEntity == null) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		} else {
+			countryForm.setCountryId(countryEntity.get().getMstcountrycd());
+			countryForm.setCountryName(countryEntity.get().getMstcountrynanme());
 		}
 
-		return new Gson().toJson(countryEntity.get());
-	}
-
-
-	/**
-	 * Returns the name of the view template to render for creating a country.
-	 *
-	 * @param countryForm the form object containing the country data
-	 * @return the name of the view template for adding a country
-	 */
-	@GetMapping("/country/create")
-	public String create(CountryForm countryForm) {
-		return "addCountry";
+		return new Gson().toJson(countryForm);
 	}
 
 	/**
-	 * Creates a new country in the database based on the provided country form.
-	 * 
-	 * @param countryForm the country form containing the details of the country to be created
-	 * @return a string message to be sent back to the frontend
+	 * The String class represents character strings.
 	 */
-	@PostMapping("/country/createCountry")
+	@GetMapping("/list2")
+	public String list(Model model, CountryForm countryForm) {
+		String name2s = "user2s";
+		List<CountryEntity> list2 = mapper.select(SelectDSLCompleter.allRows());
+		
+		model.addAttribute(name2s, list2);
+		return "list";
+	}
+
+	/*
+	 * 创建一个方法，监听/country/addCountry，
+	 * 实现根据请求的参数创建一个CountryEntity对象，并将其插入到数据库中。
+	 */
+	@PostMapping("/country/addCountry")
 	@ResponseBody
-	public String createCountry(CountryForm countryForm){
+	public String addCountry(CountryForm countryForm) {
 
-		// create new entiry
-		CountryEntity countryEntity = new CountryEntity();
-		countryEntity.setMstcountrycd(countryForm.getCd());
-		countryEntity.setMstcountrynanme(countryForm.getName());
+		CountryEntity addEntity = new CountryEntity();
+		addEntity.setMstcountrycd(countryForm.getCountryId());
+		addEntity.setMstcountrynanme(countryForm.getCountryName());
 
-		// insert into database
-		mapper.insert(countryEntity);
+		int count = mapper.insert(addEntity);
 
-		countryForm.setCd("");
-		countryForm.setName("");
+		Optional<CountryEntity> countryEntity = mapper.selectByPrimaryKey(countryForm.getCountryId());
 
-		return "这是自己写的回给前端的信息";
+		countryForm.setCountryId(countryEntity.get().getMstcountrycd());
+		countryForm.setCountryName(countryEntity.get().getMstcountrynanme());
+
+		return new Gson().toJson(countryForm);
 	}
-	
 
+	@PostMapping("/country/updateCountry")
+	@ResponseBody
+	public String updateCountry(CountryForm countryForm) {
 
+		CountryEntity updateEntity = new CountryEntity();
+		updateEntity.setMstcountrycd(countryForm.getCountryId());
+		updateEntity.setMstcountrynanme(countryForm.getCountryName());
+
+		int count = mapper.updateByPrimaryKey(updateEntity);
+
+		Optional<CountryEntity> countryEntity = mapper.selectByPrimaryKey(countryForm.getCountryId());
+		if (countryEntity == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+		} else {
+			countryForm.setCountryId(countryEntity.get().getMstcountrycd());
+			countryForm.setCountryName(countryEntity.get().getMstcountrynanme());
+		}
+
+		return new Gson().toJson(countryForm);
+	}
+
+	@PostMapping("/country/deleteCountry")
+	@ResponseBody
+	public String deleteCountry(CountryForm countryForm) {
+
+		int count = mapper.deleteByPrimaryKey(countryForm.getCountryId());
+
+		return new Gson().toJson(countryForm);
+	}
 }

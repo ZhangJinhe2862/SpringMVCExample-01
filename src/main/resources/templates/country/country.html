@@ -36,7 +36,7 @@
                     <div class="btn-group col-2">
                         <button type="button" class="btn btn-danger dropdown-toggle" data-bs-toggle="dropdown"
                             aria-expanded="false">
-                            操作
+                            処理区分
                         </button>
                         <!--dropdown list-->
                         <ul class="dropdown-menu">
@@ -44,11 +44,11 @@
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" href="#" id="selUpdate">修改</a></li>
+                            <li><a class="dropdown-item" href="#" id="selUpdate">変更</a></li>
                             <li>
                                 <hr class="dropdown-divider">
                             </li>
-                            <li><a class="dropdown-item" href="#" id="selDelete">删除</a></li>
+                            <li><a class="dropdown-item" href="#" id="selDelete">削除</a></li>
                         </ul>
                     </div>
                     <!--show query area-->
@@ -58,12 +58,12 @@
                         <form  id="frmSearch" action="#" th:action="@{/Country/GetCountry}" th:object="${countrySearchForm}" method="post">
                             <!--when query button on click, will post data to controller-->
                             <div class="m-3">
-                                <label for="queryInput" class="form-label">国家编码</label>
-                                <input type="text" class="form-control" id="queryInput" th:field="*{mstCountryCD}">
+                                <label for="queryInput" class="form-label">国家ID</label>
+                                <input type="text" class="form-control" id="queryInput" th:field="*{mstCountryCd}">
                             </div>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button id="queryBtn" type="button" class="btn btn-primary me-md-2">查询</button>
-                                <button type="clearBtb" class="btn btn-secondary ">清空</button>
+                                <button id="queryBtn" type="button" class="btn btn-primary me-md-2">検索</button>
+                                <button id="clearBtn" type="button" class="btn btn-secondary ">クリア</button>
                             </div>
                         </form>
                     </div>
@@ -86,18 +86,20 @@
             <div class="collapse show" id="collapseDetail">
                 <div class="card card-body">
                     <!-- th:object -->
-                    <form id="frmDetail" action="#" method="post">
+                    <form id="frmDetail" action="#" th:object="${countryForm}" method="post">
                         <div class="mb-3">
-                            <label for="countryCodeInput" class="form-label">Email address</label>
-                            <input type="text" class="form-control" id="countryCodeInput" placeholder="country code">
+                            <label for="countryId" class="form-label">国家ID</label>
+                            <input type="text" class="form-control" id="countryId" th:field="*{countryId}">
                         </div>
                         <div class="mb-3">
-                            <label for="countryNameInput" class="form-label">Example textarea</label>
-                            <input type="text" class="form-control" id="countryNameInput"></input>
+                            <label for="countryName" class="form-label">国家名称</label>
+                            <input type="text" class="form-control" id="countryName" th:field="*{countryName}">
                         </div>
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+							<button id="addBtn" type="button" class="btn btn-primary me-md-2">新規</button>
                             <button id="updateBtn" type="button" class="btn btn-primary me-md-2">更新</button>
-                            <button id="returnBtn" type="button" class="btn btn-secondary ">返回</button>
+                            <button id="deleteBtn" type="button" class="btn btn-primary me-md-2">削除</button>
+                            <button id="returnBtn" type="button" class="btn btn-secondary ">戻る</button>
                         </div>
                     </form>
                 </div>
